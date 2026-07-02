@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Rhythia — Web</title>
+<link rel="icon" type="image/svg+xml" href="assets/textures/icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/theme.css" />
+<link rel="stylesheet" href="css/menu.css" />
+<link rel="stylesheet" href="css/game.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="scene-canvas"></canvas>
+<div id="popup-layer"></div>
+
+<!-- ============================= MAIN MENU ============================= -->
+<section id="screen-main-menu" class="screen">
+  <div class="menu-backdrop"></div>
+  <header class="brand">
+    <img src="assets/textures/RhythiaSquircle.png" alt="" class="brand-mark" />
+    <h1>RHYTHIA</h1>
+    <p class="brand-sub">Web Port</p>
+  </header>
+
+  <nav class="main-actions">
+    <button class="btn btn-primary btn-large" data-action="play">Play</button>
+    <button class="btn btn-ghost" data-action="import">Import Map</button>
+    <button class="btn btn-ghost" data-action="settings">Settings</button>
+  </nav>
+
+  <div class="menu-footnote">
+    <span>Unofficial community web port &middot; core gameplay faithful to <a href="https://github.com/Rhythia/Client" target="_blank" rel="noopener">Rhythia/Client</a></span>
+  </div>
+  <input type="file" id="import-input" accept=".phxm,.txt" multiple hidden />
+</section>
+
+<!-- ============================= SONG SELECT ============================= -->
+<section id="screen-song-select" class="screen hidden">
+  <div class="menu-backdrop"></div>
+  <div class="song-select-layout">
+    <div class="song-select-header">
+      <button class="btn btn-ghost btn-back" data-action="back-to-menu">&larr; Back</button>
+      <input type="text" id="song-search" placeholder="Search maps..." />
+      <button class="btn btn-ghost" data-action="import">+ Import</button>
+    </div>
+
+    <div class="song-list" id="song-list"></div>
+
+    <aside class="song-detail" id="song-detail">
+      <div class="song-detail-empty">Select a map to see details</div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================= SETTINGS ============================= -->
+<section id="screen-settings" class="screen hidden">
+  <div class="menu-backdrop"></div>
+  <div class="settings-layout">
+    <div class="settings-header">
+      <button class="btn btn-ghost btn-back" data-action="close-settings">&larr; Back</button>
+      <h2>Settings</h2>
+    </div>
+    <div class="settings-tabs" id="settings-tabs">
+      <button class="tab active" data-section="Gameplay">Gameplay</button>
+      <button class="tab" data-section="Visual">Visual</button>
+      <button class="tab" data-section="Audio">Audio</button>
+    </div>
+    <div class="settings-body" id="settings-body"></div>
+  </div>
+</section>
+
+<!-- ============================= GAMEPLAY HUD ============================= -->
+<section id="screen-gameplay" class="screen hidden">
+  <div id="hud">
+    <div class="hud-top">
+      <div class="health-bar"><div class="health-bar-fill" id="hud-health"></div></div>
+    </div>
+    <div class="hud-score-block">
+      <div id="hud-score" class="hud-score">0</div>
+      <div id="hud-accuracy" class="hud-accuracy">100.00%</div>
+    </div>
+    <div class="hud-combo-block">
+      <div id="hud-combo" class="hud-combo">0</div>
+      <div id="hud-combo-mult" class="hud-combo-mult">x1</div>
+    </div>
+    <div class="hud-bottom">
+      <div class="progress-bar"><div class="progress-bar-fill" id="hud-progress"></div></div>
+    </div>
+    <div class="hud-misses" id="hud-misses">0 misses</div>
+  </div>
+
+  <div id="pause-overlay" class="overlay hidden">
+    <div class="overlay-panel">
+      <h2>Paused</h2>
+      <button class="btn btn-primary" data-action="resume">Resume</button>
+      <button class="btn btn-ghost" data-action="retry">Retry</button>
+      <button class="btn btn-ghost" data-action="quit-to-menu">Quit to Menu</button>
+    </div>
+  </div>
+
+  <div id="fail-overlay" class="overlay hidden">
+    <div class="overlay-panel">
+      <h2>Failed</h2>
+      <button class="btn btn-primary" data-action="retry">Retry</button>
+      <button class="btn btn-ghost" data-action="quit-to-menu">Quit to Menu</button>
+    </div>
+  </div>
+
+  <div id="countdown-overlay" class="overlay hidden">
+    <div class="overlay-panel countdown-panel">
+      <div id="countdown-text">Click to start</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= RESULTS ============================= -->
+<section id="screen-results" class="screen hidden">
+  <div class="menu-backdrop"></div>
+  <div class="results-layout">
+    <div class="results-grade" id="results-grade">S</div>
+    <h2 id="results-title">Song Title</h2>
+    <p id="results-artist" class="results-artist">Artist</p>
+
+    <div class="results-stats">
+      <div class="stat"><span class="stat-value" id="results-score">0</span><span class="stat-label">Score</span></div>
+      <div class="stat"><span class="stat-value" id="results-accuracy">100.00%</span><span class="stat-label">Accuracy</span></div>
+      <div class="stat"><span class="stat-value" id="results-combo">0x</span><span class="stat-label">Max Combo</span></div>
+      <div class="stat"><span class="stat-value" id="results-misses">0</span><span class="stat-label">Misses</span></div>
+    </div>
+
+    <nav class="results-actions">
+      <button class="btn btn-primary" data-action="retry">Retry</button>
+      <button class="btn btn-ghost" data-action="quit-to-menu">Back to Menu</button>
+    </nav>
+  </div>
+</section>
+
+<div id="toast-layer"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
